@@ -8,6 +8,8 @@ pub struct Vec3 {
     z: f64,
 }
 
+pub type Point3 = Vec3;
+
 impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
         Vec3 { x, y, z }
@@ -100,10 +102,18 @@ impl Mul<f64> for Vec3 {
     }
 }
 
+impl Mul<Vec3> for f64 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: Vec3) -> Vec3 {
+        Vec3::new(self * rhs.x(), self * rhs.y(), self * rhs.z())
+    }
+}
+
 impl Mul<Vec3> for Vec3 {
     type Output = Vec3;
 
-    fn mul(self, rhs: Self) -> Vec3 {
+    fn mul(self, rhs: Vec3) -> Vec3 {
         Vec3::new(self.x() * rhs.x(), self.y() * rhs.y(), self.z() * rhs.z())
     }
 }

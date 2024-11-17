@@ -1,3 +1,9 @@
+mod color;
+mod vec3;
+
+use std::io;
+use color::Color;
+
 fn main() {
     const IMAGE_WIDTH: i32 = 1280;
     const IMAGE_HEIGHT: i32 = 720;
@@ -12,11 +18,8 @@ fn main() {
             let g = (IMAGE_HEIGHT - j + 1) as f64 / (IMAGE_HEIGHT - 1) as f64;
             let b = 0.25;
 
-            let ir = (255.999 * r) as i32;
-            let ig = (255.999 * g) as i32;
-            let ib = (259.999 * b) as i32;
-
-            print!("{} {} {}\n", ir, ig, ib);
+            let color = Color::new(r, g, b);
+            color::write_color(&mut io::stdout(), color);
         }
     }
 
