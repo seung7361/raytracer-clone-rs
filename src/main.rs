@@ -3,6 +3,8 @@ mod vec3;
 mod ray;
 mod hittable;
 mod sphere;
+mod util;
+mod camera;
 
 use std::io;
 use color::Color;
@@ -10,6 +12,8 @@ use ray::Ray;
 use vec3::{Point3, Vec3};
 use hittable::{HitRecord, Hittable, HittableList};
 use sphere::Sphere;
+use util::random_f64;
+use camera::Camera;
 
 
 fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
@@ -28,17 +32,11 @@ fn main() {
     const IMAGE_WIDTH: i32 = 1280;
     const IMAGE_HEIGHT: i32 = 720;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
-    
+    const SAMPLES_PER_PIXEL: i32 = 100;
 
-    // Camera (for testing)
-    let viewport_height = 2.0;
-    let viewport_width = ASPECT_RATIO * viewport_height;
-    let focal_length = 1.0;
+    // Camera
 
-    let origin = Point3::new(0.0, 0.0, 0.0);
-    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
+    let camera = Camera::new();
 
     
     // World
@@ -52,16 +50,18 @@ fn main() {
     for j in 0..IMAGE_HEIGHT {
         eprint!("\rScanlines in progress: {} / {} ", j + 1, IMAGE_HEIGHT);
 
-        for i in 0..IMAGE_WIDTH { 
-            let u = i as f64 / (IMAGE_WIDTH - 1) as f64;
-            let v = (IMAGE_HEIGHT - j) as f64 / (IMAGE_HEIGHT - 1) as f64;
-            let r = Ray::new(
-                origin,
-                lower_left_corner + u * horizontal + v * vertical - origin,
-            );
+        for i in 0..IMAGE_WIDTH {
+            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+            
+            for _ in 0..SAMPLES_PER_PIXEL {
+                let u = (i as f64 + random_f64()) / (IMAGE_WIDTH - 1) as f64;
+                let v = ((IMAGE_HEIGHT - j) as f64 + random_f64()) / (IMAGE_HEIGHT - 1) as f64;
+                let r = camera.get_ray(u, v);
 
-            let color = ray_color(&r, &world);
-            color::write_color(&mut io::stdout(), color);
+                pixel_color += ray_color(&r, &world);
+            }
+
+            color::write_color(&mut io::stdout(), pixel_color, SAMPLES_PER_PIXEL);
         }
     }
 

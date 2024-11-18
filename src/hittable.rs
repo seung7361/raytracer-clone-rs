@@ -33,6 +33,7 @@ pub struct HittableList {
     objects: Vec<Box<dyn Hittable>>
 }
 
+
 impl HittableList {
     pub fn new() -> HittableList {
         Default::default()
