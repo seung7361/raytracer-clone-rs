@@ -8,37 +8,21 @@ use std::io;
 use color::Color;
 use ray::Ray;
 use vec3::{Point3, Vec3};
+use hittable::{HitRecord, Hittable, HittableList};
+use sphere::Sphere;
 
-fn sphere_collision(center: Point3, radius: f64, r: &Ray) -> f64 {
-    let oc = r.origin() - center;
 
-    let a = r.direction().dot(r.direction());
-    let b = 2.0 * oc.dot(r.direction());
-    let c = oc.dot(oc) - radius * radius;
-
-    let disc: f64 = b * b - 4.0 * a * c;
-    if disc < 0.0 {
-        -1.0
-    } else {
-        (-b - disc.sqrt()) / (2.0 * a)
+fn ray_color(r: &Ray, world: &dyn Hittable) -> Color {
+    let mut rec = HitRecord::new();
+    if world.hit(r, 0.0, std::f64::INFINITY, &mut rec) {
+        return 0.5 * (rec.normal + Color::new(1.0, 1.0, 1.0));
     }
+
+    let unit = r.direction().unit_vector();
+    let t = 0.5 * (unit.y() + 1.0);
+    (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)    
 }
 
-fn ray_color(r: &Ray) -> Color {
-    let t = sphere_collision(Point3::new(0.0, 0.0, -1.0), 0.5, r);
-
-    if t > 0.0 {
-        // collided?
-        let normal = (r.at(t) - Point3::new(0.0, 0.0, -1.0)).unit_vector(); // normal vector from the circle center
-        
-        return 0.5 * Color::new(normal.x() + 1.0, normal.y() + 1.0, normal.z() + 1.0);
-    } else {
-        // did not collide?
-        let unit = r.direction().unit_vector();
-        let t = 0.5 * (unit.y() + 1.0);
-        (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
-    }
-}
 
 fn main() {
     const IMAGE_WIDTH: i32 = 1280;
@@ -55,6 +39,13 @@ fn main() {
     let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
     let vertical = Vec3::new(0.0, viewport_height, 0.0);
     let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
+
+    
+    // World
+
+    let mut world = HittableList::new();
+    world.add(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
+    world.add(Box::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
     
 
     print!("P3\n{} {}\n255\n", IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -69,7 +60,7 @@ fn main() {
                 lower_left_corner + u * horizontal + v * vertical - origin,
             );
 
-            let color = ray_color(&r);
+            let color = ray_color(&r, &world);
             color::write_color(&mut io::stdout(), color);
         }
     }
