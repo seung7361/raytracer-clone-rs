@@ -1,6 +1,8 @@
 use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
+use crate::util::{random_f64, random_f64_range};
+
 #[derive(Debug, Default, Copy, Clone)]
 pub struct Vec3 {
     x: f64,
@@ -13,6 +15,22 @@ pub type Point3 = Vec3;
 impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
         Vec3 { x, y, z }
+    }
+
+    pub fn random() -> Vec3 {
+        Vec3::new(
+            random_f64(),
+            random_f64(),
+            random_f64(),
+        )
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Vec3 {
+        Vec3::new(
+            random_f64_range(min, max),
+            random_f64_range(min, max),
+            random_f64_range(min, max),
+        )
     }
 
     pub fn x(&self) -> f64 {
@@ -49,6 +67,15 @@ impl Vec3 {
 
     pub fn unit_vector(&self) -> Vec3 {
         *self / self.length()
+    }
+
+    pub fn random_in_unit_sphere() -> Vec3 {
+        loop {
+            let p = Vec3::random_range(-1.0, 1.0);
+            if p.length_squared() < 1.0 {
+                return p;
+            }
+        }
     }
 }
 
